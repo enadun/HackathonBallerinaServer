@@ -70,6 +70,7 @@
             ws.onmessage = onMessage;
             ws.onerror = onError;
             ws.onclose = onClose;
+            ws.onopen = onOpen;
             $('#connectionStatus').text("Successfully connected to server").css("color", "green");
             name = $('#name').val();
         });
@@ -103,12 +104,13 @@
 
         function sendMessage() {
             var text = $('#sendText').val();
-            ws.send(text);
+            sendMessageWS({message:text,"message-type":"echo"});
             $('#sendText').val("");
         }
 
         function onMessage(msg) {
-            $('#responseBox').append('<h4>' + msg.data + '</h4>');
+            console.log(msg);
+            $('#responseBox').append('<h4>' + JSON.parse(msg.data).message + '</h4>');
         }
 
         function onError(error) {
@@ -116,13 +118,17 @@
             console.log(error);
         }
 
+        function onOpen() {
+            sendMessageWS({"message-type":"init"});
+        }
+
         function onClose() {
             $('#responseBox').append('<h4 style="color: red">Server closed the connection</h4>');
             $('#connectionStatus').text("connection closed.").css("color", "red");
         }
 
-        function sendText(text) {
-            ws.send(text)
+        function sendMessageWS(text) {
+            ws.send(JSON.stringify(text));
         }
 
     </script>

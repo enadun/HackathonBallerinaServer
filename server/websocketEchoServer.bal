@@ -2,7 +2,7 @@ import ballerina.lang.system;
 import ballerina.lang.messages;
 import ballerina.net.http;
 import ballerina.net.ws;
-
+import ballerina.lang.jsons;
 @http:configuration {basePath:"/echo-server"}
 @ws:WebSocketUpgradePath {value:"/ws"}
 service<ws> websocketEchoServer {
@@ -14,12 +14,20 @@ service<ws> websocketEchoServer {
 
     @ws:OnTextMessage {}
     resource onTextMessage(message m) {
-        string stringPayload = messages:getStringPayload(m);
-        if ("closeMe" == stringPayload) {
+        json jsonPayload = messages:getJsonPayload(m);
+        system:println(jsonPayload);
+        var messageType = jsons:getString(jsonPayload,"$.message-type");
+        system:println(messageType);
+        
+        //ws:closeConnection(); // Close connection from server side
+        if ("close" == messageType) {
             ws:closeConnection(); // Close connection from server side
-        } else {
-            ws:pushText(stringPayload);
-            system:println("client: " + messages:getStringPayload(m));
+        } else if ("init" == messageType) {
+            json msg =  {"message":"init"};
+            //system:println(result1);
+            ws:pushText(jsons:toString(msg));
+        }else if ("echo" == messageType) {
+            ws:pushText(jsons:toString(jsonPayload));
         }
     }
 
