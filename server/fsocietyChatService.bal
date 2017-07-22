@@ -46,11 +46,16 @@ service<ws> fsocietyChatServer {
             ws:pushText(jsons:toString(jsonPayload));
         }else if("chat"==messageType){
             //get username
-            string _username = jsons:getString(jsonPayload,"$.username");
+            //string _username = jsons:getString(jsonPayload,"$.username");
             string _token = jsons:getString(jsonPayload,"$.token");
-            if(isValidUser(currentUsers,_username,_token)) {
+            system:println("Token:" +_token);
+
+            User user = findUserByToken(currentUsers,_token);
+            if(user!=null) {
+                system:println("Valid User, broadcasting");
                 var messageText = jsons:getString(jsonPayload, "$.message");
-                json msg = {"username":_username, "message":messageText, "message-type":messageType};
+                json msg = {"username":user.name, "message":messageText, "message-type":messageType};
+                system:println(msg);
                 ws:broadcastText(jsons:toString(msg));
             }else{
                 //Invalid token;
@@ -65,7 +70,7 @@ service<ws> fsocietyChatServer {
             system:println("token" + token);
             if(token!="") {
                 json msg = { "status": "OK",
-                               "access_token": token,"message-type":messageType
+                               "token": token,"message-type":messageType
                            };
                 ws:pushText(jsons:toString(msg));
                 json newUser = {"username":_username,"message-type":"user-add"};
@@ -84,7 +89,7 @@ service<ws> fsocietyChatServer {
             string token = signIn(currentUsers,_username);
             if(token!="") {
                 json msg = { "status": "OK",
-                               "access_token": token
+                               "token": token
                            };
                 ws:pushText(jsons:toString(msg));
                 json newUser = {"username":_username,"message-type":"user-add"};
@@ -133,6 +138,18 @@ function findUserByName (User[] currentUsers,string username) (User) {
     int i=0;
     while(i<(currentUsers.length)){
         if(currentUsers[i]!=null && currentUsers[i].name==username){
+            return currentUsers[i];
+        }
+        i=i+1;
+    }
+
+    return null;
+}
+
+function findUserByToken (User[] currentUsers,string token) (User) {
+    int i=0;
+    while(i<(currentUsers.length)){
+        if(currentUsers[i]!=null && currentUsers[i].token==token){
             return currentUsers[i];
         }
         i=i+1;
