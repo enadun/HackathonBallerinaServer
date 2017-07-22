@@ -3,9 +3,9 @@ import ballerina.lang.messages;
 import ballerina.net.http;
 import ballerina.net.ws;
 import ballerina.lang.jsons;
-@http:configuration {basePath:"/echo-server"}
-@ws:WebSocketUpgradePath {value:"/ws"}
-service<ws> websocketEchoServer {
+@http:configuration {basePath:"/fsociety"}
+@ws:WebSocketUpgradePath {value:"/chat-service"}
+service<ws> fscietyChatServer {
 
     @ws:OnOpen {}
     resource onOpen(message m) {
